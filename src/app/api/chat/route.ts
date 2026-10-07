@@ -39,7 +39,23 @@ Tus reglas de comportamiento:
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, context } = await req.json();
+
+    const dynamicInstruction = context ? `
+Eres un Tutor de IA Evaluador de la Academia Inteligente INAP.
+Tu objetivo es evaluar si el alumno comprendió el material de las Slides que acaba de leer.
+
+<SLIDES_DEL_ALUMNO>
+${context}
+</SLIDES_DEL_ALUMNO>
+
+Tus reglas de comportamiento:
+1. NUNCA respondas preguntas ni proporciones información que no esté en las Slides.
+2. Tu objetivo es interactuar con el alumno, evaluando su comprensión de las Slides.
+3. Si la respuesta del alumno es correcta y demuestra comprensión, felicítalo y usa la frase mágica "[DESBLOQUEADO]" para que el sistema sepa que acreditó el módulo.
+4. Si la respuesta es incorrecta o parcial, corrígelo amablemente usando la información de las Slides y dale una pista.
+5. Mantén un tono institucional.
+` : SYSTEM_INSTRUCTION;
 
     // Map history to the format expected by the SDK
     // The SDK expects { role: 'user' | 'model', parts: [{text}] }
@@ -57,7 +73,7 @@ export async function POST(req: Request) {
         { role: 'user', parts: [{ text: latestMessage }] }
       ],
       config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+        systemInstruction: dynamicInstruction,
         temperature: 0.2, // Low temperature for more factual, syllabus-bound responses
       }
     });

@@ -9,14 +9,15 @@ type Message = {
 
 interface ChatTutorProps {
   moduleName: string;
+  slidesContext?: string;
   onUnlock: () => void;
 }
 
-export default function ChatTutor({ moduleName, onUnlock }: ChatTutorProps) {
+export default function ChatTutor({ moduleName, slidesContext, onUnlock }: ChatTutorProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Hola. Soy tu tutor para el ${moduleName}. Para avanzar, por favor responde a la siguiente evaluación: \n\n¿Por qué la economía circular difiere del reciclaje lineal y cómo aplica esto en las adquisiciones?`,
+      content: `Hola. Soy tu tutor para el ${moduleName}. Para acreditar el módulo, por favor explícame con tus palabras los conceptos más importantes que acabas de leer.`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -48,7 +49,10 @@ export default function ChatTutor({ moduleName, onUnlock }: ChatTutorProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ 
+          messages: newMessages,
+          context: slidesContext
+        }),
       });
 
       const data = await response.json();
@@ -57,7 +61,6 @@ export default function ChatTutor({ moduleName, onUnlock }: ChatTutorProps) {
         let reply = data.reply;
         const isUnlocked = reply.includes("[DESBLOQUEADO]");
         
-        // Remove the magic word from the user-facing text
         if (isUnlocked) {
           reply = reply.replace("[DESBLOQUEADO]", "").trim();
         }
@@ -65,7 +68,6 @@ export default function ChatTutor({ moduleName, onUnlock }: ChatTutorProps) {
         setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
 
         if (isUnlocked) {
-          // Add a slight delay before triggering the unlock so the user can read the congrats
           setTimeout(() => {
             onUnlock();
           }, 1500);
@@ -90,11 +92,11 @@ export default function ChatTutor({ moduleName, onUnlock }: ChatTutorProps) {
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={\`max-w-[80%] p-3 rounded-lg text-sm \${
+            className={`max-w-[80%] p-3 rounded-lg text-sm ${
               msg.role === "user"
                 ? "bg-blue-600 text-white self-end rounded-br-none"
                 : "bg-white border border-gray-200 text-gray-800 self-start rounded-bl-none shadow-sm"
-            }\`}
+            }`}
           >
             {msg.content}
           </div>
