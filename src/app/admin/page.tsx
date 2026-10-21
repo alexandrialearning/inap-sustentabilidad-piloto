@@ -77,7 +77,13 @@ export default function AdminDashboard() {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
+      const raw = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = { error: `El servidor respondió ${res.status} sin detalles.` };
+      }
 
       if (res.ok) {
         setMessage(`✅ Éxito: "${data.title}" se ha procesado y guardado en la base de datos.`);
@@ -87,7 +93,7 @@ export default function AdminDashboard() {
         setMessage(`❌ Error: ${data.error}`);
       }
     } catch (err: any) {
-      setMessage(`❌ Ocurrió un error inesperado al subir el archivo.`);
+      setMessage(`❌ Ocurrió un error inesperado al subir el archivo: ${err?.message || err}`);
       console.error(err);
     } finally {
       setIsUploading(false);
