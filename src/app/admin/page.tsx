@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import Image from "next/image";
 
 type Topic = {
@@ -13,6 +12,7 @@ type Topic = {
   title: string;
   fileName: string;
   createdAt: any;
+  assignedTo?: string[];
 };
 
 export default function AdminDashboard() {
@@ -43,15 +43,13 @@ export default function AdminDashboard() {
   const fetchTopics = async () => {
     setIsLoadingTopics(true);
     try {
-      const q = query(collection(db, "knowledge_base"), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const fetchedTopics = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        title: doc.data().title,
-        fileName: doc.data().fileName,
-        createdAt: doc.data().createdAt
-      }));
-      setTopics(fetchedTopics);
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/topics?all=1", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setTopics(data.topics);
     } catch (err) {
       console.error("Error fetching topics:", err);
     } finally {
@@ -237,6 +235,7 @@ export default function AdminDashboard() {
                     <tr>
                       <th className="px-6 py-4 font-bold">Título del Módulo</th>
                       <th className="px-6 py-4 font-bold">Archivo Original</th>
+                      <th className="px-6 py-4 font-bold">Asignado a</th>
                       <th className="px-6 py-4 font-bold text-right">Acciones</th>
                     </tr>
                   </thead>
@@ -245,6 +244,15 @@ export default function AdminDashboard() {
                       <tr key={topic.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 font-medium text-gray-900">{topic.title}</td>
                         <td className="px-6 py-4 font-mono text-xs text-gray-500">{topic.fileName}</td>
+                        <td className="px-6 py-4 text-xs">
+                          {topic.assignedTo && topic.assignedTo.length > 0 ? (
+                            topic.assignedTo.map(email => (
+                              <span key={email} className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded-md mr-1 mb-1">{email}</span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400">Todos los alumnos</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-right">
                           <button 
                             onClick={() => handleDelete(topic.id, topic.title)}

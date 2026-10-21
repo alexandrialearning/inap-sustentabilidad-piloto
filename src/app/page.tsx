@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { auth } from "@/lib/firebase";
 import Link from "next/link";
 import ChatTutor from "@/components/ChatTutor";
 import { Orb } from "@/components/Orb";
@@ -59,15 +58,15 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const fetchTopics = async () => {
+    const fetchTopics = async (currentUser: any) => {
       try {
-        const q = query(collection(db, "knowledge_base"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        const topics = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          title: doc.data().title,
-          fileName: doc.data().fileName
-        }));
+        const token = await currentUser.getIdToken();
+        const res = await fetch("/api/topics", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        const topics: Topic[] = data.topics;
         setAvailableTopics(topics);
         if (topics.length > 0) setSelectedTopic(topics[0].id);
       } catch (err) {
@@ -80,7 +79,7 @@ export default function Home() {
         router.push("/login");
       } else {
         setUser(currentUser);
-        fetchTopics();
+        fetchTopics(currentUser);
       }
       setAuthLoading(false);
     });
