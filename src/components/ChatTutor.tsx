@@ -7,17 +7,20 @@ type Message = {
   content: string;
 };
 
+type Slide = { title: string; content: string; icon?: string };
+
 interface ChatTutorProps {
   moduleName: string;
-  slidesContext?: string;
+  topicId: string;
+  slides: Slide[];
   onUnlock: () => void;
 }
 
-export default function ChatTutor({ moduleName, slidesContext, onUnlock }: ChatTutorProps) {
+export default function ChatTutor({ moduleName, topicId, slides, onUnlock }: ChatTutorProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Hola. Soy tu tutor para el ${moduleName}. Para acreditar el módulo, por favor explícame con tus palabras los conceptos más importantes que acabas de leer.`,
+      content: `Hola. Soy tu tutor para "${moduleName}". Puedes hacerme preguntas sobre el documento y las tarjetas que acabas de ver. Para acreditar el módulo, explícame con tus palabras los conceptos más importantes.`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -51,7 +54,8 @@ export default function ChatTutor({ moduleName, slidesContext, onUnlock }: ChatT
         },
         body: JSON.stringify({ 
           messages: newMessages,
-          context: slidesContext
+          topicId,
+          slides,
         }),
       });
 
@@ -73,10 +77,11 @@ export default function ChatTutor({ moduleName, slidesContext, onUnlock }: ChatT
           }, 1500);
         }
       } else {
-        setMessages((prev) => [...prev, { role: "assistant", content: "Hubo un error de conexión con el tutor. Por favor, intenta de nuevo." }]);
+        setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ Error del tutor: ${data.error || "intenta de nuevo."}` }]);
       }
     } catch (error) {
       console.error(error);
+      setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Hubo un error de conexión con el tutor. Por favor, intenta de nuevo." }]);
     } finally {
       setIsLoading(false);
     }

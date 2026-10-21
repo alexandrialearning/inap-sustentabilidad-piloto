@@ -321,8 +321,9 @@ export default function Home() {
                 </div>
                 <div className="h-[500px]">
                   <ChatTutor 
-                    moduleName="Sustentabilidad" 
-                    slidesContext={JSON.stringify(slides)}
+                    moduleName={availableTopics.find(t => t.id === selectedTopic)?.title || "Curso INAP"}
+                    topicId={selectedTopic}
+                    slides={slides}
                     onUnlock={() => setCourseCompleted(true)} 
                   />
                 </div>
