@@ -5,6 +5,7 @@ import { adminDb } from '@/lib/firebase-admin';
 export const runtime = 'nodejs';
 
 const CHAT_MODEL = 'gemini-2.5-flash';
+const COURSE_NAME = 'Sustentabilidad'; // shown to students instead of the PDF file name
 const MAX_HISTORY = 20;          // last N turns sent to the model
 const MAX_MESSAGE_CHARS = 2000;  // per student message
 const MAX_SLIDES = 12;
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'El módulo seleccionado no existe.' }, { status: 404 });
     }
     const pdfText: string = docSnap.data()?.content || '';
-    const courseTitle: string = docSnap.data()?.title || 'Curso INAP';
+    const courseTitle = COURSE_NAME;
 
     // Source 2: the dynamic slides the student generated
     const slides: Slide[] = Array.isArray(rawSlides)

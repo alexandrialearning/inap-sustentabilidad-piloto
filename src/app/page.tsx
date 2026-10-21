@@ -7,7 +7,6 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
 import ChatTutor from "@/components/ChatTutor";
-import { Orb } from "@/components/Orb";
 
 type Slide = {
   title: string;
@@ -38,24 +37,8 @@ export default function Home() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isTutorUnlocked, setIsTutorUnlocked] = useState(false);
   const [courseCompleted, setCourseCompleted] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const tutorRef = useRef<HTMLDivElement>(null);
-
-  const speakText = (text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "es-MX";
-      utterance.rate = 1.0;
-      
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      
-      window.speechSynthesis.speak(utterance);
-    }
-  };
 
   useEffect(() => {
     const fetchTopics = async (currentUser: any) => {
@@ -277,16 +260,6 @@ export default function Home() {
                 <p className="text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto mb-8">
                   {slides[currentSlideIndex].content}
                 </p>
-
-                <div className="flex flex-col items-center mt-4">
-                  <button 
-                    onClick={() => speakText(slides[currentSlideIndex].content)}
-                    className="flex items-center gap-2 text-purple-600 hover:text-purple-800 font-medium bg-purple-50 px-4 py-2 rounded-full mb-4"
-                  >
-                    <span>🔊 Escuchar Slide</span>
-                  </button>
-                  <Orb isSpeaking={isSpeaking} />
-                </div>
               </div>
               
               <div className="bg-gray-50 border-t border-gray-200 p-6 flex justify-between items-center">
@@ -321,7 +294,7 @@ export default function Home() {
                 </div>
                 <div className="h-[500px]">
                   <ChatTutor 
-                    moduleName={availableTopics.find(t => t.id === selectedTopic)?.title || "Curso INAP"}
+                    moduleName="Sustentabilidad"
                     topicId={selectedTopic}
                     slides={slides}
                     onUnlock={() => setCourseCompleted(true)} 

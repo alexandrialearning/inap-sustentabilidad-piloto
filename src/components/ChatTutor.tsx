@@ -20,7 +20,7 @@ export default function ChatTutor({ moduleName, topicId, slides, onUnlock }: Cha
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Hola. Soy tu tutor para "${moduleName}". Puedes hacerme preguntas sobre el documento y las tarjetas que acabas de ver. Para acreditar el módulo, explícame con tus palabras los conceptos más importantes.`,
+      content: `Hola, soy tu tutor de ${moduleName}. Puedes hacerme preguntas sobre el material y las tarjetas que acabas de ver. Para acreditar el módulo, explícame con tus palabras los conceptos más importantes.`,
     },
   ]);
   const [input, setInput] = useState("");
