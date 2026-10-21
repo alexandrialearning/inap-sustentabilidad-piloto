@@ -94,7 +94,12 @@ export default function Home() {
   }, [isTutorUnlocked]);
 
   const handleGenerateCourse = async () => {
-    if (!selectedProfile || !selectedTopic) return;
+    if (!selectedProfile || !selectedTopic) {
+      alert(!selectedTopic
+        ? "No hay módulos disponibles. Un profesor debe subir un PDF primero."
+        : "Selecciona tu perfil profesional antes de generar el curso.");
+      return;
+    }
     setIsGenerating(true);
     
     try {
@@ -109,12 +114,13 @@ export default function Home() {
         }),
       });
       const data = await res.json();
-      if (data.slides) {
-        setSlides(data.slides);
+      if (!res.ok || !data.slides) {
+        throw new Error(data.error || "El servidor no devolvió diapositivas.");
       }
-    } catch (e) {
+      setSlides(data.slides);
+    } catch (e: any) {
       console.error(e);
-      alert("Error al generar el curso.");
+      alert("Error al generar el curso: " + (e?.message || e));
     } finally {
       setIsGenerating(false);
     }
